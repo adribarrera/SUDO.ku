@@ -33,7 +33,7 @@ public class SudokuGUI extends JPanel {
 
     private void configurarPanel() {
         setLayout(new BorderLayout());
-        setBackground(new Color(240, 240, 245));
+        setBackground(new Color(15, 23, 42));
     }
 
     private void inicializarComponentes() {
@@ -43,12 +43,12 @@ public class SudokuGUI extends JPanel {
 
     private void configurarPanelControles() {
         JPanel panelSuperior = new JPanel(new BorderLayout());
-        panelSuperior.setBackground(new Color(240, 240, 245));
+        panelSuperior.setBackground(new Color(15, 23, 42));
 
         // Configuración del Temporizador
         lblTimer = new JLabel("00:00", SwingConstants.CENTER);
         lblTimer.setFont(new Font("SansSerif", Font.BOLD, 36));
-        lblTimer.setForeground(new Color(50, 50, 50));
+        lblTimer.setForeground(new Color(226, 232, 240));
         lblTimer.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         
         timer = new Timer(1000, e -> {
@@ -62,7 +62,7 @@ public class SudokuGUI extends JPanel {
 
         JPanel panelControles = new JPanel();
         panelControles.setLayout(new FlowLayout());
-        panelControles.setBackground(new Color(220, 220, 230));
+        panelControles.setBackground(new Color(30, 41, 59));
 
         panelControles.add(new JLabel("Dificultad:"));
         comboDificultad = new JComboBox<>(new String[] { "Fácil", "Medio", "Difícil", "Prueba" });
@@ -91,7 +91,7 @@ public class SudokuGUI extends JPanel {
         JPanel panelTablero = new JPanel();
         panelTablero.setLayout(new GridLayout(9, 9));
         panelTablero.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        panelTablero.setBackground(new Color(240, 240, 245));
+        panelTablero.setBackground(new Color(15, 23, 42));
 
         Font fuenteCelda = new Font("SansSerif", Font.BOLD, 26);
 
@@ -123,7 +123,7 @@ public class SudokuGUI extends JPanel {
                 }
 
                 celda.setBorder(BorderFactory.createCompoundBorder(
-                        new MatteBorder(top, left, bottom, right, Color.DARK_GRAY),
+                        new MatteBorder(top, left, bottom, right, new Color(100, 116, 139)),
                         BorderFactory.createEmptyBorder()));
 
                 final int finalI = i;
@@ -160,7 +160,7 @@ public class SudokuGUI extends JPanel {
                                 if (!exito) {
                                     celda.setForeground(Color.RED); // Error visual inmediato
                                 } else {
-                                    celda.setForeground(new Color(0, 102, 204)); // Color azul para inputs válidos del jugador
+                                    celda.setForeground(new Color(96, 165, 250)); // Color azul brillante
                                 }
                             } catch (NumberFormatException ex) {
                                 celda.setText("");
@@ -203,18 +203,18 @@ public class SudokuGUI extends JPanel {
                     celda.setText(String.valueOf(valor));
                     if (sudoku.esCeldaFija(i, j)) {
                         celda.setEditable(false);
-                        celda.setBackground(new Color(230, 230, 230)); // Fondo gris claro para pistas
-                        celda.setForeground(Color.BLACK);
+                        celda.setBackground(new Color(30, 41, 59)); // Fondo gris claro para pistas
+                        celda.setForeground(new Color(226, 232, 240));
                     } else {
                         celda.setEditable(true);
-                        celda.setBackground(Color.WHITE);
-                        celda.setForeground(new Color(0, 102, 204));
+                        celda.setBackground(new Color(15, 23, 42));
+                        celda.setForeground(new Color(96, 165, 250));
                     }
                 } else {
                     celda.setText("");
                     celda.setEditable(true);
-                    celda.setBackground(Color.WHITE);
-                    celda.setForeground(new Color(0, 102, 204));
+                    celda.setBackground(new Color(15, 23, 42));
+                    celda.setForeground(new Color(96, 165, 250));
                 }
             }
         }

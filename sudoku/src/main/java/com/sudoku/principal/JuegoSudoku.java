@@ -3,7 +3,7 @@ package com.sudoku.principal;
 import com.sudoku.vista.SudokuGUI;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
-import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
 
 /**
  * Punto de entrada principal de la aplicación.
@@ -14,7 +14,7 @@ public class JuegoSudoku {
 
     public static void main(String[] args) {
         try {
-            UIManager.setLookAndFeel(new FlatLightLaf());
+            UIManager.setLookAndFeel(new FlatDarkLaf());
         } catch (Exception ex) {
             System.err.println("Failed to initialize LaF");
         }
