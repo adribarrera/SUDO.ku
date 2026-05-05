@@ -50,4 +50,13 @@ public class RegistroPuntuacion {
         int segundos = tiempoSegundos % 60;
         return String.format("%02d:%02d", minutos, segundos);
     }
+
+    // Método para formatear la fecha
+    public String getFechaFormateada() {
+        if (fecha != null) {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
+            return sdf.format(fecha);
+        }
+        return "-";
+    }
 }

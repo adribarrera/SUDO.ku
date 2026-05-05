@@ -9,6 +9,8 @@ import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 
 public class SudokuGUI extends JPanel {
 
@@ -178,8 +180,29 @@ public class SudokuGUI extends JPanel {
                 final int finalI = i;
                 final int finalJ = j;
 
+                celda.addFocusListener(new FocusAdapter() {
+                    @Override
+                    public void focusGained(FocusEvent e) {
+                        resaltarCeldas(finalI, finalJ);
+                    }
+                });
+
                 // Prevenir caracteres no deseados en la interfaz
                 celda.addKeyListener(new KeyAdapter() {
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+                        int code = e.getKeyCode();
+                        if (code == KeyEvent.VK_UP) {
+                            celdas[(finalI + 8) % 9][finalJ].requestFocus();
+                        } else if (code == KeyEvent.VK_DOWN) {
+                            celdas[(finalI + 1) % 9][finalJ].requestFocus();
+                        } else if (code == KeyEvent.VK_LEFT) {
+                            celdas[finalI][(finalJ + 8) % 9].requestFocus();
+                        } else if (code == KeyEvent.VK_RIGHT) {
+                            celdas[finalI][(finalJ + 1) % 9].requestFocus();
+                        }
+                    }
+
                     @Override
                     public void keyTyped(KeyEvent e) {
                         char c = e.getKeyChar();
@@ -211,12 +234,14 @@ public class SudokuGUI extends JPanel {
                                 } else {
                                     celda.setForeground(new Color(96, 165, 250)); // Color azul brillante
                                 }
+                                resaltarCeldas(finalI, finalJ);
                             } catch (NumberFormatException ex) {
                                 celda.setText("");
                             }
                         } else {
                             // Borrar el número en el modelo si lo vacíamos
                             sudoku.colocarNumero(finalI, finalJ, 0);
+                            resaltarCeldas(finalI, finalJ);
                         }
                     }
                 });
@@ -260,6 +285,37 @@ public class SudokuGUI extends JPanel {
         String difModelo = dificultad.toLowerCase().replace("á", "a").replace("í", "i");
         sudoku.generarTablero(difModelo);
         actualizarVistaTablero();
+    }
+
+    private void resaltarCeldas(int filaFocus, int colFocus) {
+        String valorFocusStr = celdas[filaFocus][colFocus].getText().trim();
+        int valorFocus = valorFocusStr.isEmpty() ? 0 : Integer.parseInt(valorFocusStr);
+        int bloqueFila = filaFocus / 3;
+        int bloqueCol = colFocus / 3;
+
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                JTextField celda = celdas[i][j];
+                String valorStr = celda.getText().trim();
+                int valorCelda = valorStr.isEmpty() ? 0 : Integer.parseInt(valorStr);
+
+                // Colores base
+                Color bgColor = sudoku.esCeldaFija(i, j) ? new Color(30, 41, 59) : new Color(15, 23, 42);
+
+                if (i == filaFocus && j == colFocus) {
+                    // Celda seleccionada
+                    bgColor = new Color(37, 99, 235); // Blue 600
+                } else if (valorFocus != 0 && valorCelda == valorFocus) {
+                    // Mismo número en el tablero
+                    bgColor = new Color(30, 58, 138); // Blue 900
+                } else if (i == filaFocus || j == colFocus || (i / 3 == bloqueFila && j / 3 == bloqueCol)) {
+                    // Misma fila, columna o cuadrante
+                    bgColor = new Color(51, 65, 85); // Slate 700
+                }
+
+                celda.setBackground(bgColor);
+            }
+        }
     }
 
     private void actualizarVistaTablero() {

@@ -52,7 +52,12 @@ public class GestorPuntuaciones {
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setString(1, registro.getNombre());
+            String nombre = registro.getNombre();
+            if (nombre != null && nombre.length() > 50) {
+                nombre = nombre.substring(0, 50);
+            }
+            
+            pstmt.setString(1, nombre);
             pstmt.setString(2, registro.getDificultad());
             pstmt.setInt(3, registro.getTiempoSegundos());
             
