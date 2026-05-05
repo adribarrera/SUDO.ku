@@ -17,6 +17,9 @@ public class Sudoku {
 
         int vacias = 40; // Por defecto
         switch (dificultad.toLowerCase()) {
+            case "prueba":
+                vacias = 1;
+                break;
             case "facil":
                 vacias = 30;
                 break;
@@ -108,6 +111,29 @@ public class Sudoku {
         }
         return true;
     }
+
+    public void mostrarTablero() {
+        System.out.println("-------------------------");
+        for (int i = 0; i < 9; i++) {
+            System.out.print("| ");
+            for (int j = 0; j < 9; j++) {
+                if (tablero[i][j] == 0) {
+                    System.out.print(". ");
+                } else {
+                    System.out.print(tablero[i][j] + " ");
+                }
+
+                if ((j + 1) % 3 == 0) {
+                    System.out.print("| ");
+                }
+            }
+            System.out.println();
+            if ((i + 1) % 3 == 0) {
+                System.out.println("-------------------------");
+            }
+        }
+    }
+
 
     public int getValor(int fila, int columna) {
         return tablero[fila][columna];
