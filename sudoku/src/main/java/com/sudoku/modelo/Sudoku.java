@@ -29,6 +29,9 @@ public class Sudoku {
             case "dificil":
                 vacias = 60;
                 break;
+            case "hardcore":
+                vacias = 65;
+                break;
             default:
                 vacias = 45;
         }

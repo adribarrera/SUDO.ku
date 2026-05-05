@@ -20,6 +20,15 @@ public class SudokuGUI extends JPanel {
     private Timer timer;
     private int segundosTranscurridos;
     private JLabel lblTimer;
+    
+    // Variables para el modo Hardcore
+    private int vidas = 3;
+    private JLabel[] iconosVidas;
+    private JPanel panelVidas;
+    private JPanel panelVacio; // Para compensar visualmente el reloj
+    private ImageIcon iconoVidaLlena;
+    private ImageIcon iconoVidaVacia;
+
     public SudokuGUI() {
         this.sudoku = new Sudoku();
         this.celdas = new JTextField[9][9];
@@ -29,6 +38,24 @@ public class SudokuGUI extends JPanel {
 
         // Generar un tablero Fácil por defecto
         generarNuevoTablero("Fácil", false);
+    }
+
+    private ImageIcon escalarIcono(String ruta, int width, int height) {
+        try {
+            java.net.URL imgURL = getClass().getResource(ruta);
+            if (imgURL != null) {
+                ImageIcon icon = new ImageIcon(imgURL);
+                Image img = icon.getImage();
+                Image newImg = img.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+                return new ImageIcon(newImg);
+            } else {
+                System.err.println("No se encontró el recurso: " + ruta);
+                return new ImageIcon();
+            }
+        } catch (Exception e) {
+            System.err.println("Error escalando icono: " + e.getMessage());
+            return new ImageIcon();
+        }
     }
 
     private void configurarPanel() {
@@ -50,6 +77,7 @@ public class SudokuGUI extends JPanel {
         lblTimer.setFont(new Font("SansSerif", Font.BOLD, 36));
         lblTimer.setForeground(new Color(226, 232, 240));
         lblTimer.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        lblTimer.setVisible(false); // Oculto al inicio según pidió el usuario
         
         timer = new Timer(1000, e -> {
             segundosTranscurridos++;
@@ -60,12 +88,33 @@ public class SudokuGUI extends JPanel {
 
         panelSuperior.add(lblTimer, BorderLayout.CENTER);
 
+        // Panel de Vidas (Hardcore)
+        iconoVidaLlena = escalarIcono("/images/Vida.png", 30, 30);
+        iconoVidaVacia = escalarIcono("/images/vidaMenos.png", 30, 30);
+
+        panelVidas = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panelVidas.setBackground(new Color(15, 23, 42));
+        iconosVidas = new JLabel[3];
+        for (int i = 0; i < 3; i++) {
+            iconosVidas[i] = new JLabel(iconoVidaLlena);
+            panelVidas.add(iconosVidas[i]);
+        }
+        panelVidas.setVisible(false);
+        panelSuperior.add(panelVidas, BorderLayout.EAST);
+
+        // Compensación visual izquierda para mantener el centro
+        panelVacio = new JPanel();
+        panelVacio.setPreferredSize(new Dimension(100, 30));
+        panelVacio.setBackground(new Color(15, 23, 42));
+        panelVacio.setVisible(false);
+        panelSuperior.add(panelVacio, BorderLayout.WEST);
+
         JPanel panelControles = new JPanel();
         panelControles.setLayout(new FlowLayout());
         panelControles.setBackground(new Color(30, 41, 59));
 
         panelControles.add(new JLabel("Dificultad:"));
-        comboDificultad = new JComboBox<>(new String[] { "Fácil", "Medio", "Difícil", "Prueba" });
+        comboDificultad = new JComboBox<>(new String[] { "Fácil", "Medio", "Difícil", "Hardcore", "Prueba" });
         panelControles.add(comboDificultad);
 
         btnGenerar = new JButton("Nueva Partida");
@@ -184,7 +233,27 @@ public class SudokuGUI extends JPanel {
         if (timer != null) timer.stop();
         segundosTranscurridos = 0;
         if (lblTimer != null) lblTimer.setText("00:00");
-        if (timer != null && arrancarTimer) timer.start();
+        
+        if (arrancarTimer) {
+            lblTimer.setVisible(true);
+            if (timer != null) timer.start();
+            comboDificultad.setEnabled(false); // Bloquear mientras se juega
+        } else {
+            lblTimer.setVisible(false);
+            comboDificultad.setEnabled(true);
+        }
+
+        if (dificultad.equalsIgnoreCase("Hardcore")) {
+            vidas = 3;
+            for (int i = 0; i < 3; i++) {
+                iconosVidas[i].setIcon(iconoVidaLlena);
+            }
+            panelVidas.setVisible(true);
+            panelVacio.setVisible(true);
+        } else {
+            panelVidas.setVisible(false);
+            panelVacio.setVisible(false);
+        }
 
         // Enviar dificultad formateada (sin acentos) para emparejar con la lógica de
         // switch del modelo
@@ -223,6 +292,7 @@ public class SudokuGUI extends JPanel {
     private void verificarVictoria() {
         if (sudoku.estaResuelto()) {
             if (timer != null) timer.stop();
+            comboDificultad.setEnabled(true); // Desbloquear al ganar
             JOptionPane.showMessageDialog(this,
                     "¡Felicidades! Has resuelto el Sudoku correctamente en " + lblTimer.getText() + ".",
                     "¡Victoria!", JOptionPane.INFORMATION_MESSAGE);
@@ -237,6 +307,34 @@ public class SudokuGUI extends JPanel {
                 panelRanking.setVisible(true);
             }
         } else {
+            String difSeleccionada = (String) comboDificultad.getSelectedItem();
+            if (difSeleccionada.equalsIgnoreCase("Hardcore")) {
+                vidas--;
+                if (vidas >= 0 && vidas < 3) {
+                    iconosVidas[vidas].setIcon(iconoVidaVacia); // Al perder una, se apaga el corazón correspondiente a ese índice
+                }
+                
+                if (vidas <= 0) {
+                    if (timer != null) timer.stop();
+                    comboDificultad.setEnabled(true); // Desbloquear al morir
+                    JOptionPane.showMessageDialog(this,
+                            "Has perdido tus 3 vidas. ¡GAME OVER!",
+                            "Fin de la partida", JOptionPane.ERROR_MESSAGE);
+                    // Bloquear tablero
+                    for (int i = 0; i < 9; i++) {
+                        for (int j = 0; j < 9; j++) {
+                            celdas[i][j].setEditable(false);
+                        }
+                    }
+                    return;
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "¡Error en el tablero! Pierdes 1 vida. Te quedan: " + vidas,
+                            "¡Cuidado!", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+            }
+
             // Comprobar si al menos hay celdas vacías
             boolean hayVacias = false;
             for (int i = 0; i < 9; i++) {
