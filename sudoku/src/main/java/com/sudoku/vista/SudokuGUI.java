@@ -349,6 +349,24 @@ public class SudokuGUI extends JPanel {
         if (sudoku.estaResuelto()) {
             if (timer != null) timer.stop();
             comboDificultad.setEnabled(true); // Desbloquear al ganar
+            
+            // Reproducir sonido de victoria en un hilo aparte para no bloquear la interfaz
+            new Thread(() -> {
+                try {
+                    java.net.URL url = getClass().getResource("/audio/victoria.wav");
+                    if (url != null) {
+                        javax.sound.sampled.AudioInputStream audioIn = javax.sound.sampled.AudioSystem.getAudioInputStream(url);
+                        javax.sound.sampled.Clip clip = javax.sound.sampled.AudioSystem.getClip();
+                        clip.open(audioIn);
+                        clip.start();
+                    } else {
+                        System.err.println("No se encontró el archivo de audio: /audio/victoria.wav");
+                    }
+                } catch (Exception ex) {
+                    System.err.println("Error al reproducir el sonido: " + ex.getMessage());
+                }
+            }).start();
+            
             JOptionPane.showMessageDialog(this,
                     "¡Felicidades! Has resuelto el Sudoku correctamente en " + lblTimer.getText() + ".",
                     "¡Victoria!", JOptionPane.INFORMATION_MESSAGE);
@@ -361,6 +379,12 @@ public class SudokuGUI extends JPanel {
                 
                 PanelRanking panelRanking = new PanelRanking((JFrame) SwingUtilities.getWindowAncestor(this), difSeleccionada);
                 panelRanking.setVisible(true);
+                
+                // Al cerrar el diálogo (es modal), volver al menú principal
+                Window window = SwingUtilities.getWindowAncestor(this);
+                if (window instanceof VentanaPrincipal) {
+                    ((VentanaPrincipal) window).mostrarMenu();
+                }
             }
         } else {
             String difSeleccionada = (String) comboDificultad.getSelectedItem();
