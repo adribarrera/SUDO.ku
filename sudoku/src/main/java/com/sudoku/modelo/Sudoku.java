@@ -3,10 +3,12 @@ package com.sudoku.modelo;
 public class Sudoku {
 
     private int[][] tablero;
+    private int[][] tableroResuelto;
     private boolean[][] celdasFijas;
 
     public Sudoku() {
         this.tablero = new int[9][9];
+        this.tableroResuelto = new int[9][9];
         this.celdasFijas = new boolean[9][9];
     }
 
@@ -38,6 +40,7 @@ public class Sudoku {
 
         GeneradorSudoku generador = new GeneradorSudoku();
         generador.generar(this.tablero, vacias);
+        this.tableroResuelto = generador.getTableroResuelto();
 
         // Establecer las celdas fijas según el tablero generado
         for (int i = 0; i < 9; i++) {
@@ -85,10 +88,9 @@ public class Sudoku {
     public boolean colocarNumero(int fila, int columna, int valor) {
         if ((fila >= 0 && fila < 9) && (columna >= 0 && columna < 9)) {
             if (!celdasFijas[fila][columna]) {
-                if (valor == 0 || esMovimientoValido(fila, columna, valor)) {
-                    tablero[fila][columna] = valor;
-                    return true;
-                }
+                boolean valido = (valor == 0) || esMovimientoValido(fila, columna, valor);
+                tablero[fila][columna] = valor;
+                return valido;
             }
         }
         return false; 
@@ -140,6 +142,10 @@ public class Sudoku {
 
     public int getValor(int fila, int columna) {
         return tablero[fila][columna];
+    }
+
+    public int getValorResuelto(int fila, int columna) {
+        return tableroResuelto[fila][columna];
     }
 
     public boolean esCeldaFija(int fila, int columna) {

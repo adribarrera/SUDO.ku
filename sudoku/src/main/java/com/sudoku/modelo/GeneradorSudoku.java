@@ -10,12 +10,22 @@ public class GeneradorSudoku {
     this.random = new Random();
    }
 
+   private int[][] tableroResuelto;
+
    public void generar(int [][] tableroObjetivo, int celdasVacias) {
     // Lleno primero los tres bloques diagonales
     llenarDiagonal();
 
     //Lleno el resto de celdas usando backtracking
     resolverSudoku(this.tablero);
+
+    // Guardo una copia del tablero resuelto antes de quitar celdas
+    this.tableroResuelto = new int[9][9];
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            this.tableroResuelto[i][j] = this.tablero[i][j];
+        }
+    }
 
     //Elimino aleatoriamente la cantidad de celdas necesarias para crear los agujeros
     quitarCeldas(celdasVacias);
@@ -113,5 +123,9 @@ public class GeneradorSudoku {
                 contador = contador - 1;
             }
         }
+    }
+
+    public int[][] getTableroResuelto() {
+        return this.tableroResuelto;
     }
 }

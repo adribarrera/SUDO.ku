@@ -22,6 +22,10 @@ public class SudokuGUI extends JPanel {
     private Timer timer;
     private int segundosTranscurridos;
     private JLabel lblTimer;
+    private JButton btnVolverMenu;
+    private boolean partidaIniciada = false;
+    private CardLayout cardLayoutSuperior;
+    private JPanel panelCentroSuperior;
     
     // Variables para el modo Hardcore
     private int vidas = 3;
@@ -38,8 +42,7 @@ public class SudokuGUI extends JPanel {
         configurarPanel();
         inicializarComponentes();
 
-        // Generar un tablero Fácil por defecto
-        generarNuevoTablero("Fácil", false);
+        limpiarTablero();
     }
 
     private ImageIcon escalarIcono(String ruta, int width, int height) {
@@ -74,12 +77,26 @@ public class SudokuGUI extends JPanel {
         JPanel panelSuperior = new JPanel(new BorderLayout());
         panelSuperior.setBackground(new Color(15, 23, 42));
 
+        cardLayoutSuperior = new CardLayout();
+        panelCentroSuperior = new JPanel(cardLayoutSuperior);
+        panelCentroSuperior.setBackground(new Color(15, 23, 42));
+
+        // Configuración del Logo
+        JLabel lblLogo = new JLabel("", SwingConstants.CENTER);
+        ImageIcon logoIcon = escalarIcono("/images/ku.png", 180, 45); // Escalar al tamaño de la barra superior
+        if (logoIcon != null) {
+            lblLogo.setIcon(logoIcon);
+        } else {
+            lblLogo.setText("SUDO.ku");
+            lblLogo.setFont(new Font("SansSerif", Font.BOLD, 36));
+            lblLogo.setForeground(new Color(226, 232, 240));
+        }
+
         // Configuración del Temporizador
         lblTimer = new JLabel("00:00", SwingConstants.CENTER);
         lblTimer.setFont(new Font("SansSerif", Font.BOLD, 36));
         lblTimer.setForeground(new Color(226, 232, 240));
         lblTimer.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-        lblTimer.setVisible(false); // Oculto al inicio según pidió el usuario
         
         timer = new Timer(1000, e -> {
             segundosTranscurridos++;
@@ -88,7 +105,10 @@ public class SudokuGUI extends JPanel {
             lblTimer.setText(String.format("%02d:%02d", minutos, segundos));
         });
 
-        panelSuperior.add(lblTimer, BorderLayout.CENTER);
+        panelCentroSuperior.add(lblLogo, "LOGO");
+        panelCentroSuperior.add(lblTimer, "TIMER");
+
+        panelSuperior.add(panelCentroSuperior, BorderLayout.CENTER);
 
         // Panel de Vidas (Hardcore)
         iconoVidaLlena = escalarIcono("/images/Vida.png", 30, 30);
@@ -123,15 +143,29 @@ public class SudokuGUI extends JPanel {
         btnGenerar.setFocusPainted(false);
         btnGenerar.setBackground(new Color(100, 150, 255));
         btnGenerar.setForeground(Color.WHITE);
-        btnGenerar.addActionListener(e -> generarNuevoTablero((String) comboDificultad.getSelectedItem(), true));
+        btnGenerar.addActionListener(e -> {
+            if (partidaIniciada) {
+                rendirse();
+            } else {
+                generarNuevoTablero((String) comboDificultad.getSelectedItem(), true);
+            }
+        });
         panelControles.add(btnGenerar);
 
         btnVerificar = new JButton("Verificar Victoria");
         btnVerificar.setFocusPainted(false);
         btnVerificar.setBackground(new Color(100, 200, 100));
         btnVerificar.setForeground(Color.WHITE);
+        btnVerificar.setEnabled(false); // Deshabilitado al principio
         btnVerificar.addActionListener(e -> verificarVictoria());
         panelControles.add(btnVerificar);
+
+        btnVolverMenu = new JButton("Volver al Menú");
+        btnVolverMenu.setFocusPainted(false);
+        btnVolverMenu.setBackground(new Color(220, 38, 38)); // Rojo
+        btnVolverMenu.setForeground(Color.WHITE);
+        btnVolverMenu.addActionListener(e -> volverAlMenu());
+        panelControles.add(btnVolverMenu);
 
         panelSuperior.add(panelControles, BorderLayout.SOUTH);
 
@@ -227,22 +261,18 @@ public class SudokuGUI extends JPanel {
                             try {
                                 int valor = Integer.parseInt(texto);
                                 // Intentar colocar el número en el modelo
-                                boolean exito = sudoku.colocarNumero(finalI, finalJ, valor);
-
-                                if (!exito) {
-                                    celda.setForeground(Color.RED); // Error visual inmediato
-                                } else {
-                                    celda.setForeground(new Color(96, 165, 250)); // Color azul brillante
-                                }
-                                resaltarCeldas(finalI, finalJ);
+                                sudoku.colocarNumero(finalI, finalJ, valor);
                             } catch (NumberFormatException ex) {
                                 celda.setText("");
+                                sudoku.colocarNumero(finalI, finalJ, 0);
                             }
                         } else {
                             // Borrar el número en el modelo si lo vacíamos
                             sudoku.colocarNumero(finalI, finalJ, 0);
-                            resaltarCeldas(finalI, finalJ);
                         }
+                        
+                        actualizarColoresErrores();
+                        resaltarCeldas(finalI, finalJ);
                     }
                 });
 
@@ -260,11 +290,15 @@ public class SudokuGUI extends JPanel {
         if (lblTimer != null) lblTimer.setText("00:00");
         
         if (arrancarTimer) {
-            lblTimer.setVisible(true);
+            if (cardLayoutSuperior != null && panelCentroSuperior != null) {
+                cardLayoutSuperior.show(panelCentroSuperior, "TIMER");
+            }
             if (timer != null) timer.start();
             comboDificultad.setEnabled(false); // Bloquear mientras se juega
         } else {
-            lblTimer.setVisible(false);
+            if (cardLayoutSuperior != null && panelCentroSuperior != null) {
+                cardLayoutSuperior.show(panelCentroSuperior, "LOGO");
+            }
             comboDificultad.setEnabled(true);
         }
 
@@ -280,11 +314,89 @@ public class SudokuGUI extends JPanel {
             panelVacio.setVisible(false);
         }
 
-        // Enviar dificultad formateada (sin acentos) para emparejar con la lógica de
-        // switch del modelo
         String difModelo = dificultad.toLowerCase().replace("á", "a").replace("í", "i");
         sudoku.generarTablero(difModelo);
         actualizarVistaTablero();
+
+        if (arrancarTimer) {
+            partidaIniciada = true;
+            btnGenerar.setText("Rendirse");
+            btnGenerar.setBackground(new Color(249, 115, 22)); // Naranja
+            if (btnVolverMenu != null) btnVolverMenu.setVisible(true);
+            if (btnVerificar != null) btnVerificar.setEnabled(true);
+        }
+    }
+
+    private void volverAlMenu() {
+        Window window = SwingUtilities.getWindowAncestor(this);
+        if (window instanceof VentanaPrincipal) {
+            ((VentanaPrincipal) window).mostrarMenu();
+        }
+    }
+
+    private void rendirse() {
+        if (timer != null) timer.stop();
+        partidaIniciada = false;
+        
+        btnGenerar.setText("Nueva Partida");
+        btnGenerar.setBackground(new Color(100, 150, 255)); // Azul original
+        if (btnVolverMenu != null) btnVolverMenu.setVisible(true);
+        if (btnVerificar != null) btnVerificar.setEnabled(false);
+        comboDificultad.setEnabled(true);
+        
+        // Mostrar soluciones en amarillo
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                JTextField celda = celdas[i][j];
+                celda.setEditable(false);
+                if (!sudoku.esCeldaFija(i, j)) {
+                    int valorResuelto = sudoku.getValorResuelto(i, j);
+                    if (valorResuelto != 0) {
+                        celda.setText(String.valueOf(valorResuelto));
+                        celda.setForeground(new Color(250, 204, 21)); // Amarillo dorado
+                    }
+                }
+            }
+        }
+    }
+
+    public void limpiarTablero() {
+        if (timer != null) timer.stop();
+        segundosTranscurridos = 0;
+        if (lblTimer != null) {
+            lblTimer.setText("00:00");
+        }
+        if (cardLayoutSuperior != null && panelCentroSuperior != null) {
+            cardLayoutSuperior.show(panelCentroSuperior, "LOGO");
+        }
+        if (comboDificultad != null) {
+            comboDificultad.setEnabled(true);
+        }
+        if (panelVidas != null) panelVidas.setVisible(false);
+        if (panelVacio != null) panelVacio.setVisible(false);
+        
+        partidaIniciada = false;
+        if (btnGenerar != null) {
+            btnGenerar.setText("Nueva Partida");
+            btnGenerar.setBackground(new Color(100, 150, 255)); // Azul original
+        }
+        if (btnVolverMenu != null) btnVolverMenu.setVisible(true);
+        if (btnVerificar != null) btnVerificar.setEnabled(false);
+
+        this.sudoku = new Sudoku();
+
+        if (celdas != null) {
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    if (celdas[i][j] != null) {
+                        celdas[i][j].setText("");
+                        celdas[i][j].setEditable(false);
+                        celdas[i][j].setBackground(new Color(15, 23, 42));
+                        celdas[i][j].setForeground(new Color(96, 165, 250));
+                    }
+                }
+            }
+        }
     }
 
     private void resaltarCeldas(int filaFocus, int colFocus) {
@@ -343,6 +455,26 @@ public class SudokuGUI extends JPanel {
                 }
             }
         }
+        actualizarColoresErrores();
+    }
+
+    private void actualizarColoresErrores() {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (!sudoku.esCeldaFija(i, j)) {
+                    int valor = sudoku.getValor(i, j);
+                    if (valor != 0) {
+                        if (sudoku.esMovimientoValido(i, j, valor)) {
+                            celdas[i][j].setForeground(new Color(96, 165, 250));
+                        } else {
+                            celdas[i][j].setForeground(Color.RED);
+                        }
+                    } else {
+                        celdas[i][j].setForeground(new Color(96, 165, 250));
+                    }
+                }
+            }
+        }
     }
 
     private void verificarVictoria() {
@@ -367,24 +499,10 @@ public class SudokuGUI extends JPanel {
                 }
             }).start();
             
-            JOptionPane.showMessageDialog(this,
-                    "¡Felicidades! Has resuelto el Sudoku correctamente en " + lblTimer.getText() + ".",
-                    "¡Victoria!", JOptionPane.INFORMATION_MESSAGE);
-            
-            String nombre = JOptionPane.showInputDialog(this, "Introduce tu nombre para el ranking:");
-            if (nombre != null && !nombre.trim().isEmpty()) {
+            Window window = SwingUtilities.getWindowAncestor(this);
+            if (window instanceof VentanaPrincipal) {
                 String difSeleccionada = (String) comboDificultad.getSelectedItem();
-                RegistroPuntuacion registro = new RegistroPuntuacion(nombre.trim(), difSeleccionada, segundosTranscurridos);
-                GestorPuntuaciones.guardarPuntuacion(registro);
-                
-                PanelRanking panelRanking = new PanelRanking((JFrame) SwingUtilities.getWindowAncestor(this), difSeleccionada);
-                panelRanking.setVisible(true);
-                
-                // Al cerrar el diálogo (es modal), volver al menú principal
-                Window window = SwingUtilities.getWindowAncestor(this);
-                if (window instanceof VentanaPrincipal) {
-                    ((VentanaPrincipal) window).mostrarMenu();
-                }
+                ((VentanaPrincipal) window).mostrarVictoria(segundosTranscurridos, difSeleccionada);
             }
         } else {
             String difSeleccionada = (String) comboDificultad.getSelectedItem();
@@ -406,6 +524,12 @@ public class SudokuGUI extends JPanel {
                             celdas[i][j].setEditable(false);
                         }
                     }
+                    
+                    partidaIniciada = false;
+                    btnGenerar.setText("Nueva Partida");
+                    btnGenerar.setBackground(new Color(100, 150, 255)); // Azul original
+                    if (btnVolverMenu != null) btnVolverMenu.setVisible(true);
+                    if (btnVerificar != null) btnVerificar.setEnabled(false);
                     return;
                 } else {
                     JOptionPane.showMessageDialog(this,

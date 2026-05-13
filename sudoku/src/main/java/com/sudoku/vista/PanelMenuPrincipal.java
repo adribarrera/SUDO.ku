@@ -39,7 +39,7 @@ public class PanelMenuPrincipal extends JPanel {
         add(Box.createVerticalStrut(20));
 
         JButton btnTutorial = createButton("Tutorial", new Color(100, 150, 255));
-        btnTutorial.addActionListener(e -> mostrarTutorial());
+        btnTutorial.addActionListener(e -> ventanaPadre.mostrarTutorial());
         add(btnTutorial);
 
         add(Box.createVerticalStrut(20));
@@ -67,21 +67,7 @@ public class PanelMenuPrincipal extends JPanel {
         return btn;
     }
 
-    private void mostrarTutorial() {
-        String mensaje = "¡Bienvenido a SUDO.ku!\n\n" +
-                "Objetivo del juego:\n" +
-                "Rellenar la cuadrícula de 9x9 con números del 1 al 9, de forma que\n" +
-                "cada número aparezca exactamente una vez en cada fila, columna y\n" +
-                "subcuadrícula de 3x3.\n\n" +
-                "Modos de juego:\n" +
-                "- Fácil: Ideal para principiantes, con muchas pistas iniciales.\n" +
-                "- Medio: Un desafío moderado para jugadores con experiencia.\n" +
-                "- Difícil: Para los más expertos, con muy pocas pistas.\n" +
-                "- Hardcore: Tendrás 3 vidas. Cada error resta una vida.\n" +
-                "  ¡Si te quedas a 0, Game Over!";
 
-        JOptionPane.showMessageDialog(this, mensaje, "Tutorial", JOptionPane.INFORMATION_MESSAGE);
-    }
 
     private ImageIcon escalarIcono(String ruta, int width, int height) {
         try {
