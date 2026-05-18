@@ -1,8 +1,6 @@
 package com.sudoku.vista;
 
 import com.sudoku.modelo.Sudoku;
-import com.sudoku.modelo.GestorPuntuaciones;
-import com.sudoku.modelo.RegistroPuntuacion;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
@@ -26,7 +24,7 @@ public class SudokuGUI extends JPanel {
     private boolean partidaIniciada = false;
     private CardLayout cardLayoutSuperior;
     private JPanel panelCentroSuperior;
-    
+
     // Variables para el modo Hardcore
     private int vidas = 3;
     private JLabel[] iconosVidas;
@@ -97,7 +95,7 @@ public class SudokuGUI extends JPanel {
         lblTimer.setFont(new Font("SansSerif", Font.BOLD, 36));
         lblTimer.setForeground(new Color(226, 232, 240));
         lblTimer.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-        
+
         timer = new Timer(1000, e -> {
             segundosTranscurridos++;
             int minutos = segundosTranscurridos / 60;
@@ -270,7 +268,7 @@ public class SudokuGUI extends JPanel {
                             // Borrar el número en el modelo si lo vacíamos
                             sudoku.colocarNumero(finalI, finalJ, 0);
                         }
-                        
+
                         actualizarColoresErrores();
                         resaltarCeldas(finalI, finalJ);
                     }
@@ -285,15 +283,18 @@ public class SudokuGUI extends JPanel {
     }
 
     private void generarNuevoTablero(String dificultad, boolean arrancarTimer) {
-        if (timer != null) timer.stop();
+        if (timer != null)
+            timer.stop();
         segundosTranscurridos = 0;
-        if (lblTimer != null) lblTimer.setText("00:00");
-        
+        if (lblTimer != null)
+            lblTimer.setText("00:00");
+
         if (arrancarTimer) {
             if (cardLayoutSuperior != null && panelCentroSuperior != null) {
                 cardLayoutSuperior.show(panelCentroSuperior, "TIMER");
             }
-            if (timer != null) timer.start();
+            if (timer != null)
+                timer.start();
             comboDificultad.setEnabled(false); // Bloquear mientras se juega
         } else {
             if (cardLayoutSuperior != null && panelCentroSuperior != null) {
@@ -322,8 +323,10 @@ public class SudokuGUI extends JPanel {
             partidaIniciada = true;
             btnGenerar.setText("Rendirse");
             btnGenerar.setBackground(new Color(249, 115, 22)); // Naranja
-            if (btnVolverMenu != null) btnVolverMenu.setVisible(true);
-            if (btnVerificar != null) btnVerificar.setEnabled(true);
+            if (btnVolverMenu != null)
+                btnVolverMenu.setVisible(true);
+            if (btnVerificar != null)
+                btnVerificar.setEnabled(true);
         }
     }
 
@@ -335,15 +338,18 @@ public class SudokuGUI extends JPanel {
     }
 
     private void rendirse() {
-        if (timer != null) timer.stop();
+        if (timer != null)
+            timer.stop();
         partidaIniciada = false;
-        
+
         btnGenerar.setText("Nueva Partida");
         btnGenerar.setBackground(new Color(100, 150, 255)); // Azul original
-        if (btnVolverMenu != null) btnVolverMenu.setVisible(true);
-        if (btnVerificar != null) btnVerificar.setEnabled(false);
+        if (btnVolverMenu != null)
+            btnVolverMenu.setVisible(true);
+        if (btnVerificar != null)
+            btnVerificar.setEnabled(false);
         comboDificultad.setEnabled(true);
-        
+
         // Mostrar soluciones en amarillo
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
@@ -361,7 +367,8 @@ public class SudokuGUI extends JPanel {
     }
 
     public void limpiarTablero() {
-        if (timer != null) timer.stop();
+        if (timer != null)
+            timer.stop();
         segundosTranscurridos = 0;
         if (lblTimer != null) {
             lblTimer.setText("00:00");
@@ -372,16 +379,20 @@ public class SudokuGUI extends JPanel {
         if (comboDificultad != null) {
             comboDificultad.setEnabled(true);
         }
-        if (panelVidas != null) panelVidas.setVisible(false);
-        if (panelVacio != null) panelVacio.setVisible(false);
-        
+        if (panelVidas != null)
+            panelVidas.setVisible(false);
+        if (panelVacio != null)
+            panelVacio.setVisible(false);
+
         partidaIniciada = false;
         if (btnGenerar != null) {
             btnGenerar.setText("Nueva Partida");
             btnGenerar.setBackground(new Color(100, 150, 255)); // Azul original
         }
-        if (btnVolverMenu != null) btnVolverMenu.setVisible(true);
-        if (btnVerificar != null) btnVerificar.setEnabled(false);
+        if (btnVolverMenu != null)
+            btnVolverMenu.setVisible(true);
+        if (btnVerificar != null)
+            btnVerificar.setEnabled(false);
 
         this.sudoku = new Sudoku();
 
@@ -478,16 +489,41 @@ public class SudokuGUI extends JPanel {
     }
 
     private void verificarVictoria() {
+        // Sincronizar explícitamente el modelo con el contenido actual de los
+        // JTextField
+        // para evitar desincronizaciones por eventos de teclado (keyReleased)
+        // pendientes o copiar/pegar
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (!sudoku.esCeldaFija(i, j)) {
+                    String texto = celdas[i][j].getText().trim();
+                    if (!texto.isEmpty()) {
+                        try {
+                            int valor = Integer.parseInt(texto);
+                            sudoku.colocarNumero(i, j, valor);
+                        } catch (NumberFormatException ex) {
+                            sudoku.colocarNumero(i, j, 0);
+                        }
+                    } else {
+                        sudoku.colocarNumero(i, j, 0);
+                    }
+                }
+            }
+        }
+        actualizarColoresErrores();
+
         if (sudoku.estaResuelto()) {
-            if (timer != null) timer.stop();
+            if (timer != null)
+                timer.stop();
             comboDificultad.setEnabled(true); // Desbloquear al ganar
-            
+
             // Reproducir sonido de victoria en un hilo aparte para no bloquear la interfaz
             new Thread(() -> {
                 try {
                     java.net.URL url = getClass().getResource("/audio/victoria.wav");
                     if (url != null) {
-                        javax.sound.sampled.AudioInputStream audioIn = javax.sound.sampled.AudioSystem.getAudioInputStream(url);
+                        javax.sound.sampled.AudioInputStream audioIn = javax.sound.sampled.AudioSystem
+                                .getAudioInputStream(url);
                         javax.sound.sampled.Clip clip = javax.sound.sampled.AudioSystem.getClip();
                         clip.open(audioIn);
                         clip.start();
@@ -498,7 +534,7 @@ public class SudokuGUI extends JPanel {
                     System.err.println("Error al reproducir el sonido: " + ex.getMessage());
                 }
             }).start();
-            
+
             Window window = SwingUtilities.getWindowAncestor(this);
             if (window instanceof VentanaPrincipal) {
                 String difSeleccionada = (String) comboDificultad.getSelectedItem();
@@ -509,11 +545,13 @@ public class SudokuGUI extends JPanel {
             if (difSeleccionada.equalsIgnoreCase("Hardcore")) {
                 vidas--;
                 if (vidas >= 0 && vidas < 3) {
-                    iconosVidas[vidas].setIcon(iconoVidaVacia); // Al perder una, se apaga el corazón correspondiente a ese índice
+                    iconosVidas[vidas].setIcon(iconoVidaVacia); // Al perder una, se apaga el corazón correspondiente a
+                                                                // ese índice
                 }
-                
+
                 if (vidas <= 0) {
-                    if (timer != null) timer.stop();
+                    if (timer != null)
+                        timer.stop();
                     comboDificultad.setEnabled(true); // Desbloquear al morir
                     JOptionPane.showMessageDialog(this,
                             "Has perdido tus 3 vidas. ¡GAME OVER!",
@@ -524,12 +562,14 @@ public class SudokuGUI extends JPanel {
                             celdas[i][j].setEditable(false);
                         }
                     }
-                    
+
                     partidaIniciada = false;
                     btnGenerar.setText("Nueva Partida");
                     btnGenerar.setBackground(new Color(100, 150, 255)); // Azul original
-                    if (btnVolverMenu != null) btnVolverMenu.setVisible(true);
-                    if (btnVerificar != null) btnVerificar.setEnabled(false);
+                    if (btnVolverMenu != null)
+                        btnVolverMenu.setVisible(true);
+                    if (btnVerificar != null)
+                        btnVerificar.setEnabled(false);
                     return;
                 } else {
                     JOptionPane.showMessageDialog(this,

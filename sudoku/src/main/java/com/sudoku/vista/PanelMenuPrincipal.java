@@ -33,13 +33,13 @@ public class PanelMenuPrincipal extends JPanel {
 
         // Botones
         JButton btnComenzar = createButton("Comenzar", new Color(34, 197, 94)); // Verde
-        btnComenzar.addActionListener(e -> ventanaPadre.mostrarJuego());
+        btnComenzar.addActionListener(e -> this.ventanaPadre.mostrarJuego());
         add(btnComenzar);
 
         add(Box.createVerticalStrut(20));
 
         JButton btnTutorial = createButton("Tutorial", new Color(100, 150, 255));
-        btnTutorial.addActionListener(e -> ventanaPadre.mostrarTutorial());
+        btnTutorial.addActionListener(e -> this.ventanaPadre.mostrarTutorial());
         add(btnTutorial);
 
         add(Box.createVerticalStrut(20));
