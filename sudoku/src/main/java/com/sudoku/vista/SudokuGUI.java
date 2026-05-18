@@ -1,6 +1,7 @@
 package com.sudoku.vista;
 
 import com.sudoku.modelo.Sudoku;
+import com.sudoku.principal.JuegoSudoku;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
@@ -10,6 +11,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
+/**
+ * Panel principal de la interfaz gráfica del juego de Sudoku (SUDO.ku).
+ * Gestiona la representación visual del tablero de 9x9, el temporizador de la
+ * partida,
+ * la selección de dificultad, el modo Hardcore (con sistema de vidas) y la
+ * interacción
+ * directa del usuario mediante teclado y ratón.
+ */
 public class SudokuGUI extends JPanel {
 
     private Sudoku sudoku;
@@ -29,10 +38,16 @@ public class SudokuGUI extends JPanel {
     private int vidas = 3;
     private JLabel[] iconosVidas;
     private JPanel panelVidas;
-    private JPanel panelVacio; // Para compensar visualmente el reloj
+    private JPanel panelVacio; // Para compensar visualmente el reloj y mantener el centrado
     private ImageIcon iconoVidaLlena;
     private ImageIcon iconoVidaVacia;
 
+    /**
+     * Constructor de la interfaz gráfica de Sudoku.
+     * Inicializa el modelo interno del juego, la matriz de campos de texto y
+     * configura
+     * la disposición visual de los paneles de control y el tablero principal.
+     */
     public SudokuGUI() {
         this.sudoku = new Sudoku();
         this.celdas = new JTextField[9][9];
@@ -43,6 +58,16 @@ public class SudokuGUI extends JPanel {
         limpiarTablero();
     }
 
+    /**
+     * Carga y escala una imagen desde los recursos del proyecto para adaptarla a la
+     * interfaz.
+     *
+     * @param ruta   Ruta relativa del recurso de imagen.
+     * @param width  Ancho deseado para el icono escalado.
+     * @param height Alto deseado para el icono escalado.
+     * @return ImageIcon escalado, o un ImageIcon vacío si ocurre un error al
+     *         cargar.
+     */
     private ImageIcon escalarIcono(String ruta, int width, int height) {
         try {
             java.net.URL imgURL = getClass().getResource(ruta);
@@ -61,16 +86,33 @@ public class SudokuGUI extends JPanel {
         }
     }
 
+    /**
+     * Configura el diseño principal del contenedor (BorderLayout) y su color de
+     * fondo.
+     */
     private void configurarPanel() {
         setLayout(new BorderLayout());
-        setBackground(new Color(15, 23, 42));
+        setBackground(new Color(15, 23, 42)); // Fondo oscuro de la aplicación
     }
 
+    /**
+     * Inicializa y organiza los subpaneles principales: la barra superior de
+     * controles
+     * y la cuadrícula central del tablero.
+     */
     private void inicializarComponentes() {
         configurarPanelControles();
         configurarPanelTablero();
     }
 
+    /**
+     * Configura el panel superior que alberga el logotipo del juego, el
+     * temporizador,
+     * los iconos de vidas (para el modo Hardcore) y la barra inferior de botones de
+     * acción
+     * (selección de dificultad, nueva partida, verificar victoria y volver al
+     * menú).
+     */
     private void configurarPanelControles() {
         JPanel panelSuperior = new JPanel(new BorderLayout());
         panelSuperior.setBackground(new Color(15, 23, 42));
@@ -79,7 +121,7 @@ public class SudokuGUI extends JPanel {
         panelCentroSuperior = new JPanel(cardLayoutSuperior);
         panelCentroSuperior.setBackground(new Color(15, 23, 42));
 
-        // Configuración del Logo
+        // Configuración del Logo principal
         JLabel lblLogo = new JLabel("", SwingConstants.CENTER);
         ImageIcon logoIcon = escalarIcono("/images/ku.png", 180, 45); // Escalar al tamaño de la barra superior
         if (logoIcon != null) {
@@ -90,7 +132,7 @@ public class SudokuGUI extends JPanel {
             lblLogo.setForeground(new Color(226, 232, 240));
         }
 
-        // Configuración del Temporizador
+        // Configuración del Temporizador de la partida
         lblTimer = new JLabel("00:00", SwingConstants.CENTER);
         lblTimer.setFont(new Font("SansSerif", Font.BOLD, 36));
         lblTimer.setForeground(new Color(226, 232, 240));
@@ -108,7 +150,7 @@ public class SudokuGUI extends JPanel {
 
         panelSuperior.add(panelCentroSuperior, BorderLayout.CENTER);
 
-        // Panel de Vidas (Hardcore)
+        // Panel de Vidas exclusivo para el modo Hardcore
         iconoVidaLlena = escalarIcono("/images/Vida.png", 30, 30);
         iconoVidaVacia = escalarIcono("/images/vidaMenos.png", 30, 30);
 
@@ -122,7 +164,8 @@ public class SudokuGUI extends JPanel {
         panelVidas.setVisible(false);
         panelSuperior.add(panelVidas, BorderLayout.EAST);
 
-        // Compensación visual izquierda para mantener el centro
+        // Compensación visual izquierda para mantener el temporizador y el logo
+        // perfectamente centrados
         panelVacio = new JPanel();
         panelVacio.setPreferredSize(new Dimension(100, 30));
         panelVacio.setBackground(new Color(15, 23, 42));
@@ -134,7 +177,11 @@ public class SudokuGUI extends JPanel {
         panelControles.setBackground(new Color(30, 41, 59));
 
         panelControles.add(new JLabel("Dificultad:"));
-        comboDificultad = new JComboBox<>(new String[] { "Fácil", "Medio", "Difícil", "Hardcore", "Prueba" });
+        if (JuegoSudoku.MODO_DEBUG) {
+            comboDificultad = new JComboBox<>(new String[] { "Fácil", "Medio", "Difícil", "Hardcore", "Prueba" });
+        } else {
+            comboDificultad = new JComboBox<>(new String[] { "Fácil", "Medio", "Difícil", "Hardcore" });
+        }
         panelControles.add(comboDificultad);
 
         btnGenerar = new JButton("Nueva Partida");
@@ -154,7 +201,7 @@ public class SudokuGUI extends JPanel {
         btnVerificar.setFocusPainted(false);
         btnVerificar.setBackground(new Color(100, 200, 100));
         btnVerificar.setForeground(Color.WHITE);
-        btnVerificar.setEnabled(false); // Deshabilitado al principio
+        btnVerificar.setEnabled(false); // Deshabilitado hasta que comience una partida
         btnVerificar.addActionListener(e -> verificarVictoria());
         panelControles.add(btnVerificar);
 
@@ -170,6 +217,13 @@ public class SudokuGUI extends JPanel {
         this.add(panelSuperior, BorderLayout.NORTH);
     }
 
+    /**
+     * Crea y configura la cuadrícula central de 9x9 campos de texto (JTextField).
+     * Establece los bordes compuestos para diferenciar visualmente los bloques de
+     * 3x3
+     * e implementa los listeners de foco y teclado para la navegación y entrada de
+     * datos.
+     */
     private void configurarPanelTablero() {
         JPanel panelTablero = new JPanel();
         panelTablero.setLayout(new GridLayout(9, 9));
@@ -184,26 +238,12 @@ public class SudokuGUI extends JPanel {
                 celda.setHorizontalAlignment(JTextField.CENTER);
                 celda.setFont(fuenteCelda);
 
-                // Bordes para simular los bloques 3x3 del Sudoku
-                int top = 1;
-                if (i % 3 == 0) {
-                    top = 3;
-                }
-
-                int left = 1;
-                if (j % 3 == 0) {
-                    left = 3;
-                }
-
-                int bottom = 0;
-                if (i == 8) {
-                    bottom = 3;
-                }
-
-                int right = 0;
-                if (j == 8) {
-                    right = 3;
-                }
+                // Configuramos bordes de grosor variable para simular las subcuadrículas 3x3
+                // del Sudoku
+                int top = (i % 3 == 0) ? 3 : 1;
+                int left = (j % 3 == 0) ? 3 : 1;
+                int bottom = (i == 8) ? 3 : 0;
+                int right = (j == 8) ? 3 : 0;
 
                 celda.setBorder(BorderFactory.createCompoundBorder(
                         new MatteBorder(top, left, bottom, right, new Color(100, 116, 139)),
@@ -212,6 +252,8 @@ public class SudokuGUI extends JPanel {
                 final int finalI = i;
                 final int finalJ = j;
 
+                // Listener para resaltar dinámicamente filas, columnas y cuadrantes al enfocar
+                // una celda
                 celda.addFocusListener(new FocusAdapter() {
                     @Override
                     public void focusGained(FocusEvent e) {
@@ -219,11 +261,15 @@ public class SudokuGUI extends JPanel {
                     }
                 });
 
-                // Prevenir caracteres no deseados en la interfaz
+                // Listener de teclado para control de navegación y filtrado de caracteres
                 celda.addKeyListener(new KeyAdapter() {
                     @Override
                     public void keyPressed(KeyEvent e) {
                         int code = e.getKeyCode();
+                        // Implementamos navegación cíclica por el tablero utilizando aritmética
+                        // modular.
+                        // Sumar 8 y hacer módulo 9 equivale a restar 1 de forma segura sin dar
+                        // resultados negativos.
                         if (code == KeyEvent.VK_UP) {
                             celdas[(finalI + 8) % 9][finalJ].requestFocus();
                         } else if (code == KeyEvent.VK_DOWN) {
@@ -238,18 +284,18 @@ public class SudokuGUI extends JPanel {
                     @Override
                     public void keyTyped(KeyEvent e) {
                         char c = e.getKeyChar();
-                        // Ignorar cualquier ingreso si la celda es pista original
-                        // o si el caracter no es un numero del 1 al 9.
+                        // Ignoramos la entrada si la celda es una pista fija original
+                        // o si el carácter introducido no es un número del 1 al 9.
                         if (c < '1' || c > '9' || sudoku.esCeldaFija(finalI, finalJ)) {
                             e.consume();
                         } else {
-                            celda.setText(""); // Despejar para que solo atrape un dígito
+                            celda.setText(""); // Despejamos el contenido previo para atrapar únicamente el nuevo dígito
                         }
                     }
 
                     @Override
                     public void keyReleased(KeyEvent e) {
-                        // Si la celda es fija, su valor nunca se cambiará.
+                        // Si la celda es fija, su valor en el modelo nunca debe alterarse.
                         if (sudoku.esCeldaFija(finalI, finalJ)) {
                             return;
                         }
@@ -258,17 +304,18 @@ public class SudokuGUI extends JPanel {
                         if (!texto.isEmpty()) {
                             try {
                                 int valor = Integer.parseInt(texto);
-                                // Intentar colocar el número en el modelo
+                                // Intentamos colocar el número introducido en el modelo del juego
                                 sudoku.colocarNumero(finalI, finalJ, valor);
                             } catch (NumberFormatException ex) {
                                 celda.setText("");
                                 sudoku.colocarNumero(finalI, finalJ, 0);
                             }
                         } else {
-                            // Borrar el número en el modelo si lo vacíamos
+                            // Borramos el número en el modelo si el usuario ha vaciado la celda
                             sudoku.colocarNumero(finalI, finalJ, 0);
                         }
 
+                        // Actualizamos la retroalimentación visual de errores y resaltados
                         actualizarColoresErrores();
                         resaltarCeldas(finalI, finalJ);
                     }
@@ -282,6 +329,17 @@ public class SudokuGUI extends JPanel {
         this.add(panelTablero, BorderLayout.CENTER);
     }
 
+    /**
+     * Genera un nuevo tablero de Sudoku según la dificultad seleccionada.
+     * Reinicia el temporizador, gestiona la visibilidad del sistema de vidas en
+     * modo Hardcore
+     * y actualiza el estado de los botones de control.
+     *
+     * @param dificultad    Cadena que representa la dificultad (Fácil, Medio,
+     *                      Difícil, Hardcore, Prueba).
+     * @param arrancarTimer Indica si debe iniciarse el temporizador al crear el
+     *                      tablero.
+     */
     private void generarNuevoTablero(String dificultad, boolean arrancarTimer) {
         if (timer != null)
             timer.stop();
@@ -295,7 +353,7 @@ public class SudokuGUI extends JPanel {
             }
             if (timer != null)
                 timer.start();
-            comboDificultad.setEnabled(false); // Bloquear mientras se juega
+            comboDificultad.setEnabled(false); // Bloqueamos el selector de dificultad mientras se juega
         } else {
             if (cardLayoutSuperior != null && panelCentroSuperior != null) {
                 cardLayoutSuperior.show(panelCentroSuperior, "LOGO");
@@ -303,6 +361,7 @@ public class SudokuGUI extends JPanel {
             comboDificultad.setEnabled(true);
         }
 
+        // Configuración específica para el modo Hardcore
         if (dificultad.equalsIgnoreCase("Hardcore")) {
             vidas = 3;
             for (int i = 0; i < 3; i++) {
@@ -315,6 +374,8 @@ public class SudokuGUI extends JPanel {
             panelVacio.setVisible(false);
         }
 
+        // Adaptamos la cadena de dificultad eliminando tildes para la correcta lectura
+        // en el modelo
         String difModelo = dificultad.toLowerCase().replace("á", "a").replace("í", "i");
         sudoku.generarTablero(difModelo);
         actualizarVistaTablero();
@@ -330,6 +391,10 @@ public class SudokuGUI extends JPanel {
         }
     }
 
+    /**
+     * Navega de vuelta al menú principal de la aplicación obteniendo la ventana
+     * contenedora.
+     */
     private void volverAlMenu() {
         Window window = SwingUtilities.getWindowAncestor(this);
         if (window instanceof VentanaPrincipal) {
@@ -337,20 +402,25 @@ public class SudokuGUI extends JPanel {
         }
     }
 
+    /**
+     * Finaliza la partida actual por rendición del usuario.
+     * Detiene el temporizador, bloquea las celdas y revela la solución completa
+     * del tablero resaltando los números resueltos en color amarillo dorado.
+     */
     private void rendirse() {
         if (timer != null)
             timer.stop();
         partidaIniciada = false;
 
         btnGenerar.setText("Nueva Partida");
-        btnGenerar.setBackground(new Color(100, 150, 255)); // Azul original
+        btnGenerar.setBackground(new Color(100, 150, 255)); // Azul original de botón
         if (btnVolverMenu != null)
             btnVolverMenu.setVisible(true);
         if (btnVerificar != null)
             btnVerificar.setEnabled(false);
         comboDificultad.setEnabled(true);
 
-        // Mostrar soluciones en amarillo
+        // Mostramos la solución en el tablero marcando las celdas en amarillo dorado
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
                 JTextField celda = celdas[i][j];
@@ -366,6 +436,11 @@ public class SudokuGUI extends JPanel {
         }
     }
 
+    /**
+     * Restablece por completo el estado del tablero y la interfaz gráfica.
+     * Detiene temporizadores, oculta paneles de vidas, limpia las celdas de texto
+     * y genera una instancia completamente nueva del modelo de Sudoku.
+     */
     public void limpiarTablero() {
         if (timer != null)
             timer.stop();
@@ -410,6 +485,17 @@ public class SudokuGUI extends JPanel {
         }
     }
 
+    /**
+     * Resalta visualmente las celdas relacionadas con la celda actualmente
+     * enfocada.
+     * Aplica distintos tonos de azul y gris para destacar la propia celda, las
+     * celdas
+     * que contienen el mismo número y todas las celdas de su misma fila, columna y
+     * cuadrante 3x3.
+     *
+     * @param filaFocus Fila de la celda con el foco actual.
+     * @param colFocus  Columna de la celda con el foco actual.
+     */
     private void resaltarCeldas(int filaFocus, int colFocus) {
         String valorFocusStr = celdas[filaFocus][colFocus].getText().trim();
         int valorFocus = valorFocusStr.isEmpty() ? 0 : Integer.parseInt(valorFocusStr);
@@ -422,17 +508,17 @@ public class SudokuGUI extends JPanel {
                 String valorStr = celda.getText().trim();
                 int valorCelda = valorStr.isEmpty() ? 0 : Integer.parseInt(valorStr);
 
-                // Colores base
+                // Colores base de fondo según si la celda es pista original o celda editable
                 Color bgColor = sudoku.esCeldaFija(i, j) ? new Color(30, 41, 59) : new Color(15, 23, 42);
 
                 if (i == filaFocus && j == colFocus) {
-                    // Celda seleccionada
+                    // Celda seleccionada directamente por el usuario
                     bgColor = new Color(37, 99, 235); // Blue 600
                 } else if (valorFocus != 0 && valorCelda == valorFocus) {
-                    // Mismo número en el tablero
+                    // Celdas que contienen exactamente el mismo número en el tablero
                     bgColor = new Color(30, 58, 138); // Blue 900
                 } else if (i == filaFocus || j == colFocus || (i / 3 == bloqueFila && j / 3 == bloqueCol)) {
-                    // Misma fila, columna o cuadrante
+                    // Celdas pertenecientes a la misma fila, columna o cuadrante 3x3
                     bgColor = new Color(51, 65, 85); // Slate 700
                 }
 
@@ -441,6 +527,11 @@ public class SudokuGUI extends JPanel {
         }
     }
 
+    /**
+     * Sincroniza la interfaz gráfica con el estado actual del modelo de Sudoku.
+     * Configura los colores de fondo y texto apropiados para celdas fijas (pistas)
+     * y editables.
+     */
     private void actualizarVistaTablero() {
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
@@ -451,7 +542,7 @@ public class SudokuGUI extends JPanel {
                     celda.setText(String.valueOf(valor));
                     if (sudoku.esCeldaFija(i, j)) {
                         celda.setEditable(false);
-                        celda.setBackground(new Color(30, 41, 59)); // Fondo gris claro para pistas
+                        celda.setBackground(new Color(30, 41, 59)); // Fondo gris oscuro para pistas iniciales
                         celda.setForeground(new Color(226, 232, 240));
                     } else {
                         celda.setEditable(true);
@@ -469,6 +560,13 @@ public class SudokuGUI extends JPanel {
         actualizarColoresErrores();
     }
 
+    /**
+     * Recorre el tablero evaluando la validez de los números introducidos por el
+     * usuario.
+     * Si un número viola las reglas del Sudoku (repetición en fila, columna o
+     * cuadrante),
+     * su color de texto cambia a rojo para alertar visualmente al jugador.
+     */
     private void actualizarColoresErrores() {
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
@@ -476,9 +574,9 @@ public class SudokuGUI extends JPanel {
                     int valor = sudoku.getValor(i, j);
                     if (valor != 0) {
                         if (sudoku.esMovimientoValido(i, j, valor)) {
-                            celdas[i][j].setForeground(new Color(96, 165, 250));
+                            celdas[i][j].setForeground(new Color(96, 165, 250)); // Azul claro (correcto)
                         } else {
-                            celdas[i][j].setForeground(Color.RED);
+                            celdas[i][j].setForeground(Color.RED); // Rojo (movimiento inválido)
                         }
                     } else {
                         celdas[i][j].setForeground(new Color(96, 165, 250));
@@ -488,11 +586,22 @@ public class SudokuGUI extends JPanel {
         }
     }
 
+    /**
+     * Verifica si el tablero actual representa una victoria válida.
+     * Realiza una sincronización explícita previa de todos los campos de texto con
+     * el modelo
+     * para asegurar que se capturen los últimos cambios. Gestiona la reproducción
+     * del audio
+     * de victoria, el cambio a la pantalla de felicitación y el sistema de
+     * penalización de vidas
+     * en el modo Hardcore.
+     */
     private void verificarVictoria() {
-        // Sincronizar explícitamente el modelo con el contenido actual de los
+        // Sincronizo explícitamente el modelo interno con el contenido actual de los
         // JTextField
-        // para evitar desincronizaciones por eventos de teclado (keyReleased)
-        // pendientes o copiar/pegar
+        // antes de validar. Esto previene fallos de desincronización causados por
+        // eventos
+        // de teclado pendientes (keyReleased) o acciones rápidas como copiar/pegar.
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
                 if (!sudoku.esCeldaFija(i, j)) {
@@ -515,9 +624,11 @@ public class SudokuGUI extends JPanel {
         if (sudoku.estaResuelto()) {
             if (timer != null)
                 timer.stop();
-            comboDificultad.setEnabled(true); // Desbloquear al ganar
+            comboDificultad.setEnabled(true); // Desbloqueamos el selector al ganar
 
-            // Reproducir sonido de victoria en un hilo aparte para no bloquear la interfaz
+            // Reproduzco el efecto de sonido de victoria en un hilo independiente (Thread)
+            // para garantizar que la interfaz gráfica (hilo de Swing) no sufra bloqueos o
+            // tirones.
             new Thread(() -> {
                 try {
                     java.net.URL url = getClass().getResource("/audio/victoria.wav");
@@ -545,18 +656,19 @@ public class SudokuGUI extends JPanel {
             if (difSeleccionada.equalsIgnoreCase("Hardcore")) {
                 vidas--;
                 if (vidas >= 0 && vidas < 3) {
-                    iconosVidas[vidas].setIcon(iconoVidaVacia); // Al perder una, se apaga el corazón correspondiente a
-                                                                // ese índice
+                    // Al perder una vida, apago visualmente el corazón correspondiente a ese índice
+                    iconosVidas[vidas].setIcon(iconoVidaVacia);
                 }
 
                 if (vidas <= 0) {
                     if (timer != null)
                         timer.stop();
-                    comboDificultad.setEnabled(true); // Desbloquear al morir
+                    comboDificultad.setEnabled(true); // Desbloqueamos el selector al finalizar la partida
                     JOptionPane.showMessageDialog(this,
                             "Has perdido tus 3 vidas. ¡GAME OVER!",
                             "Fin de la partida", JOptionPane.ERROR_MESSAGE);
-                    // Bloquear tablero
+
+                    // Bloqueo total del tablero tras perder
                     for (int i = 0; i < 9; i++) {
                         for (int j = 0; j < 9; j++) {
                             celdas[i][j].setEditable(false);
@@ -565,7 +677,7 @@ public class SudokuGUI extends JPanel {
 
                     partidaIniciada = false;
                     btnGenerar.setText("Nueva Partida");
-                    btnGenerar.setBackground(new Color(100, 150, 255)); // Azul original
+                    btnGenerar.setBackground(new Color(100, 150, 255)); // Azul original de botón
                     if (btnVolverMenu != null)
                         btnVolverMenu.setVisible(true);
                     if (btnVerificar != null)
@@ -579,7 +691,8 @@ public class SudokuGUI extends JPanel {
                 }
             }
 
-            // Comprobar si al menos hay celdas vacías
+            // Compruebo si el fallo se debe a que el tablero aún tiene celdas vacías por
+            // rellenar
             boolean hayVacias = false;
             for (int i = 0; i < 9; i++) {
                 for (int j = 0; j < 9; j++) {

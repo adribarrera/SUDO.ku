@@ -6,6 +6,12 @@ import com.sudoku.modelo.RegistroPuntuacion;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Panel que se muestra al usuario tras completar con éxito un Sudoku.
+ * Felicita al jugador, muestra el tiempo total invertido y proporciona un
+ * formulario
+ * para introducir su nombre y registrar la puntuación en la base de datos.
+ */
 public class PanelRegistroVictoria extends JPanel {
 
     private VentanaPrincipal ventanaPadre;
@@ -16,21 +22,37 @@ public class PanelRegistroVictoria extends JPanel {
     private JTextField txtNombre;
     private JLabel lblError;
 
+    /**
+     * Constructor del panel de registro de victoria.
+     * Configura el contenedor principal e inicializa los elementos visuales y de
+     * formulario.
+     *
+     * @param ventanaPadre Referencia a la ventana principal para gestionar la
+     *                     navegación.
+     */
     public PanelRegistroVictoria(VentanaPrincipal ventanaPadre) {
         this.ventanaPadre = ventanaPadre;
         configurarPanel();
         inicializarComponentes();
     }
 
+    /**
+     * Configura el diseño vertical (BoxLayout) y el color de fondo del panel.
+     */
     private void configurarPanel() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setBackground(new Color(15, 23, 42)); // Mismo fondo oscuro
+        setBackground(new Color(15, 23, 42)); // Mismo fondo oscuro de la aplicación
     }
 
+    /**
+     * Inicializa y organiza los componentes internos: mensajes de felicitación,
+     * etiqueta del tiempo de resolución, campo de texto para el nombre del jugador
+     * y botones de acción (enviar o cancelar).
+     */
     private void inicializarComponentes() {
         add(Box.createVerticalStrut(100));
 
-        // Título de enhorabuena
+        // Título principal de felicitación
         JLabel lblTitulo = new JLabel("¡Enhorabuena!");
         lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblTitulo.setFont(new Font("SansSerif", Font.BOLD, 48));
@@ -39,7 +61,6 @@ public class PanelRegistroVictoria extends JPanel {
 
         add(Box.createVerticalStrut(20));
 
-        // Subtítulo
         JLabel lblSubtitulo = new JLabel("Has resuelto el Sudoku correctamente.");
         lblSubtitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblSubtitulo.setFont(new Font("SansSerif", Font.PLAIN, 20));
@@ -48,7 +69,7 @@ public class PanelRegistroVictoria extends JPanel {
 
         add(Box.createVerticalStrut(10));
 
-        // Etiqueta de tiempo (se actualiza dinámicamente)
+        // Etiqueta de tiempo (se actualiza dinámicamente al cargar la vista)
         lblTiempo = new JLabel("Tiempo: 00:00");
         lblTiempo.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblTiempo.setFont(new Font("SansSerif", Font.BOLD, 24));
@@ -57,7 +78,7 @@ public class PanelRegistroVictoria extends JPanel {
 
         add(Box.createVerticalStrut(60));
 
-        // Formulario para nombre
+        // Etiqueta del formulario para el ingreso del nombre
         JLabel lblNombre = new JLabel("Introduce tu nombre para el ranking:");
         lblNombre.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblNombre.setFont(new Font("SansSerif", Font.PLAIN, 16));
@@ -66,41 +87,43 @@ public class PanelRegistroVictoria extends JPanel {
 
         add(Box.createVerticalStrut(10));
 
+        // Campo de texto personalizado para introducir el nombre
         txtNombre = new JTextField();
         txtNombre.setMaximumSize(new Dimension(300, 40));
         txtNombre.setPreferredSize(new Dimension(300, 40));
         txtNombre.setFont(new Font("SansSerif", Font.PLAIN, 18));
-        txtNombre.setBackground(new Color(30, 41, 59));
+        txtNombre.setBackground(new Color(30, 41, 59)); // Fondo de celda oscuro
         txtNombre.setForeground(Color.WHITE);
         txtNombre.setCaretColor(Color.WHITE);
         txtNombre.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(100, 116, 139)),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)
-        ));
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)));
         txtNombre.setAlignmentX(Component.CENTER_ALIGNMENT);
         add(txtNombre);
 
         add(Box.createVerticalStrut(5));
 
-        // Label de error (inicialmente oculto o sin texto)
+        // Etiqueta de error para validación del formulario (inicialmente vacía)
         lblError = new JLabel(" ");
         lblError.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblError.setFont(new Font("SansSerif", Font.ITALIC, 14));
-        lblError.setForeground(Color.WHITE); // El usuario pidió texto blanco
+        lblError.setForeground(Color.WHITE); // Texto en blanco según petición previa
         add(lblError);
 
         add(Box.createVerticalStrut(40));
 
-        // Panel de botones
+        // Panel contenedor para los botones de acción
         JPanel panelBotones = new JPanel();
         panelBotones.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 0));
         panelBotones.setBackground(new Color(15, 23, 42));
         panelBotones.setMaximumSize(new Dimension(500, 60));
 
-        JButton btnCancelar = createButton("Cancelar", new Color(220, 38, 38));
+        // Botón Cancelar: Descarta el registro y vuelve al menú principal
+        JButton btnCancelar = createButton("Cancelar", new Color(220, 38, 38)); // Rojo
         btnCancelar.addActionListener(e -> ventanaPadre.mostrarMenu());
 
-        JButton btnEnviar = createButton("Enviar", new Color(34, 197, 94));
+        // Botón Enviar: Valida y registra la puntuación en la base de datos
+        JButton btnEnviar = createButton("Enviar", new Color(34, 197, 94)); // Verde
         btnEnviar.addActionListener(e -> enviarPuntuacion());
 
         panelBotones.add(btnCancelar);
@@ -110,6 +133,14 @@ public class PanelRegistroVictoria extends JPanel {
         add(Box.createVerticalGlue());
     }
 
+    /**
+     * Crea y configura un botón estandarizado para el formulario con esquinas
+     * redondeadas.
+     *
+     * @param text    Texto que mostrará el botón.
+     * @param bgColor Color de fondo del botón.
+     * @return JButton configurado con el estilo del proyecto.
+     */
     private JButton createButton(String text, Color bgColor) {
         JButton btn = new JButton(text);
         btn.setPreferredSize(new Dimension(150, 45));
@@ -121,28 +152,41 @@ public class PanelRegistroVictoria extends JPanel {
         return btn;
     }
 
+    /**
+     * Procesa el envío del formulario. Valida que el nombre no esté vacío,
+     * crea el registro de puntuación, lo guarda en la base de datos y redirige a la
+     * pantalla de ranking.
+     */
     private void enviarPuntuacion() {
         String nombre = txtNombre.getText().trim();
         if (nombre.isEmpty()) {
             lblError.setText("¡Debes introducir un nombre válido!");
             txtNombre.requestFocus();
         } else {
-            lblError.setText(" "); // Limpiar error
+            lblError.setText(" "); // Limpiamos el mensaje de error
             RegistroPuntuacion registro = new RegistroPuntuacion(nombre, dificultad, segundosTranscurridos);
             GestorPuntuaciones.guardarPuntuacion(registro);
             ventanaPadre.mostrarRanking(dificultad);
         }
     }
 
+    /**
+     * Recibe y configura los datos de la partida recién ganada antes de mostrar el
+     * panel.
+     * Formatea el tiempo en minutos y segundos y resetea los campos del formulario.
+     *
+     * @param segundos   Tiempo total transcurrido en segundos.
+     * @param dificultad Dificultad superada en la partida.
+     */
     public void setDatosVictoria(int segundos, String dificultad) {
         this.segundosTranscurridos = segundos;
         this.dificultad = dificultad;
-        
+
         int minutos = segundos / 60;
         int segs = segundos % 60;
         lblTiempo.setText(String.format("Tiempo: %02d:%02d", minutos, segs));
-        
-        // Limpiar el campo para una nueva partida
+
+        // Limpiamos el campo y el mensaje de error para una nueva partida
         txtNombre.setText("");
         lblError.setText(" ");
     }

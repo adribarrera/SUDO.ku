@@ -10,6 +10,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
+/**
+ * Panel que muestra la tabla de clasificación (Ranking) de los mejores tiempos
+ * de SUDO.ku.
+ * Representa visualmente el Top 10 de jugadores por dificultad, asignando
+ * medallas
+ * (oro, plata y bronce) a las tres primeras posiciones de la tabla.
+ */
 public class PanelRanking extends JPanel {
 
     private VentanaPrincipal ventanaPadre;
@@ -19,6 +26,15 @@ public class PanelRanking extends JPanel {
     private ImageIcon plataIcon;
     private ImageIcon bronceIcon;
 
+    /**
+     * Constructor del panel de ranking.
+     * Carga los recursos gráficos de las medallas, inicializa la estructura de la
+     * tabla
+     * y configura el diseño general.
+     *
+     * @param ventanaPadre Referencia a la ventana principal para permitir volver al
+     *                     menú.
+     */
     public PanelRanking(VentanaPrincipal ventanaPadre) {
         this.ventanaPadre = ventanaPadre;
         cargarIconos();
@@ -26,12 +42,25 @@ public class PanelRanking extends JPanel {
         inicializarComponentes();
     }
 
+    /**
+     * Carga en memoria los iconos de las medallas de oro, plata y bronce.
+     */
     private void cargarIconos() {
         oroIcon = escalarIcono("/images/gold-medal.png", 24, 24);
         plataIcon = escalarIcono("/images/silver-medal.png", 24, 24);
         bronceIcon = escalarIcono("/images/bronze-medal.png", 24, 24);
     }
 
+    /**
+     * Carga y escala una imagen desde los recursos del proyecto para adaptarla a la
+     * interfaz.
+     *
+     * @param ruta   Ruta relativa del recurso de imagen.
+     * @param width  Ancho deseado para el icono escalado.
+     * @param height Alto deseado para el icono escalado.
+     * @return ImageIcon escalado, o un ImageIcon vacío si ocurre un error al
+     *         cargar.
+     */
     private ImageIcon escalarIcono(String ruta, int width, int height) {
         try {
             java.net.URL imgURL = getClass().getResource(ruta);
@@ -47,24 +76,33 @@ public class PanelRanking extends JPanel {
         }
     }
 
+    /**
+     * Configura las propiedades básicas del panel contenedor principal.
+     */
     private void configurarPanel() {
         setLayout(new BorderLayout());
-        setBackground(new Color(15, 23, 42));
+        setBackground(new Color(15, 23, 42)); // Mismo fondo oscuro de la aplicación
     }
 
+    /**
+     * Inicializa los componentes visuales: título superior, tabla personalizada con
+     * renderizadores específicos para celdas y medallas, y el botón inferior de
+     * regreso.
+     */
     private void inicializarComponentes() {
-        // Título superior
+        // Título superior de la sección
         lblTitulo = new JLabel("Ranking", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("SansSerif", Font.BOLD, 28));
         lblTitulo.setForeground(new Color(226, 232, 240));
         lblTitulo.setBorder(BorderFactory.createEmptyBorder(25, 0, 20, 0));
         add(lblTitulo, BorderLayout.NORTH);
 
-        // Tabla de puntuaciones
+        // Definición de las columnas de la tabla de puntuaciones
         String[] columnas = { "Pos", "Nombre", "Tiempo", "Fecha" };
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
+                // Hacemos que ninguna celda sea editable directamente por el usuario
                 return false;
             }
         };
@@ -77,7 +115,7 @@ public class PanelRanking extends JPanel {
         tablaRanking.setSelectionBackground(new Color(71, 85, 105));
         tablaRanking.setSelectionForeground(Color.WHITE);
 
-        // Desactivamos la cuadrícula por defecto para usar nuestros bordes azules
+        // Desactivamos la cuadrícula por defecto para usar bordes azules
         tablaRanking.setShowGrid(false);
         tablaRanking.setIntercellSpacing(new Dimension(0, 0));
 
@@ -88,7 +126,7 @@ public class PanelRanking extends JPanel {
 
         Border bordeAzul = BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(59, 130, 246)); // Azul
 
-        // Renderizador para las columnas (centrado general con borde azul)
+        // Renderizador general para centrar el texto y aplicar el borde inferior azul
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
@@ -101,7 +139,8 @@ public class PanelRanking extends JPanel {
             }
         };
 
-        // Renderizador especial para la columna Posición (Medallas)
+        // Renderizador especial para la columna Posición que sustituye el texto por
+        // medallas en el Top 3
         DefaultTableCellRenderer positionRenderer = new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
@@ -109,14 +148,15 @@ public class PanelRanking extends JPanel {
                 JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
                         column);
                 label.setHorizontalAlignment(JLabel.CENTER);
-                label.setIcon(null); // Resetear icono por defecto
+                label.setIcon(null); // Resetear icono por defecto para evitar duplicados
                 label.setBorder(bordeAzul);
 
                 if (value != null) {
                     String texto = value.toString();
+                    // Asignamos medallas según la posición y ocultamos el texto original
                     if (texto.equals("1º") && oroIcon != null && oroIcon.getImage() != null) {
                         label.setIcon(oroIcon);
-                        label.setText(""); // Ocultar el texto, dejar solo el icono
+                        label.setText(""); // Ocultar el texto, dejar solo la medalla
                     } else if (texto.equals("2º") && plataIcon != null && plataIcon.getImage() != null) {
                         label.setIcon(plataIcon);
                         label.setText("");
@@ -130,12 +170,13 @@ public class PanelRanking extends JPanel {
             }
         };
 
+        // Asignamos los renderizadores a las columnas correspondientes
         tablaRanking.getColumnModel().getColumn(0).setCellRenderer(positionRenderer);
         tablaRanking.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
         tablaRanking.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
         tablaRanking.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
 
-        // Ajustar anchos
+        // Ajustamos los anchos preferidos para cada columna
         tablaRanking.getColumnModel().getColumn(0).setPreferredWidth(60);
         tablaRanking.getColumnModel().getColumn(1).setPreferredWidth(180);
         tablaRanking.getColumnModel().getColumn(2).setPreferredWidth(100);
@@ -146,7 +187,7 @@ public class PanelRanking extends JPanel {
         scrollPane.getViewport().setBackground(new Color(15, 23, 42));
         add(scrollPane, BorderLayout.CENTER);
 
-        // Botón cerrar
+        // Botón inferior para regresar al menú principal
         JButton btnCerrar = new JButton("Volver al Menú");
         btnCerrar.setFont(new Font("SansSerif", Font.BOLD, 18));
         btnCerrar.setFocusPainted(false);
@@ -164,10 +205,18 @@ public class PanelRanking extends JPanel {
         add(panelInferior, BorderLayout.SOUTH);
     }
 
+    /**
+     * Carga en la tabla las mejores puntuaciones obtenidas desde la base de datos
+     * para la dificultad solicitada.
+     *
+     * @param dificultad Dificultad de la cual se mostrará el ranking (Fácil, Medio,
+     *                   Difícil, Hardcore).
+     */
     public void cargarRanking(String dificultad) {
         lblTitulo.setText("Ranking: " + dificultad);
-        modeloTabla.setRowCount(0); // Limpiar tabla
+        modeloTabla.setRowCount(0); // Limpiar la tabla antes de cargar nuevos datos
 
+        // Obtenemos la lista del Top 10 desde el gestor de base de datos
         List<RegistroPuntuacion> topPuntuaciones = GestorPuntuaciones.obtenerTopPuntuaciones(dificultad);
         int posicion = 1;
         for (RegistroPuntuacion registro : topPuntuaciones) {
@@ -180,6 +229,8 @@ public class PanelRanking extends JPanel {
             posicion++;
         }
 
+        // Si no hay registros previos en la base de datos, mostramos una fila
+        // indicativa
         if (topPuntuaciones.isEmpty()) {
             modeloTabla.addRow(new Object[] { "-", "Sin registros", "-", "-" });
         }
